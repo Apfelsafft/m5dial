@@ -1,78 +1,72 @@
-#define templates
+#define defaults
 #define page
 #define script 
+
+
 defaults:
   step: id(climate_step_temperature_${my_name}).state
   set_time: "2"
 
 script:
+    #set new temperature
   - id: climate_apply_new_temperature_${my_name}
     mode: single
     then:
-      - logger.log: "N E W  T E M P"
       - delay: 500ms
       - if:
           condition:
             - lambda: |-
                 return id(touchscreen_display_on).state && id(climate_new_temperature_${my_name}).state >= 5;
           then:
-            - logger.log: "Set Temp"
             - homeassistant.service:
                 service: climate.set_temperature
                 data:
                   entity_id: ${my_entity}
                   temperature: !lambda |-
                     return id(climate_new_temperature_${my_name}).state;
-  - id: climate_new_temperature_auto_mode_${my_name}
-    mode: single
-    then:
-      - lambda: |-
-          if (id(climate_new_temperature_${my_name}).state <= id(climate_away_temperature_${my_name}).state) {
-            id(climate_away_script_${my_name}).execute();
-          } else if (id(climate_new_temperature_${my_name}).state > id(climate_away_temperature_${my_name}).state && id(climate_new_temperature_${my_name}).state <= id(climate_sleep_temperature_${my_name}).state) {
-            id(climate_sleep_script_${my_name}).execute();
-          } else if (id(climate_new_temperature_${my_name}).state > id(climate_sleep_temperature_${my_name}).state && id(climate_new_temperature_${my_name}).state <= id(climate_home_temperature_${my_name}).state) {
-            id(climate_home_script_${my_name}).execute();
-          } else if (id(climate_new_temperature_${my_name}).state > id(climate_home_temperature_${my_name}).state) {
-            id(climate_comfort_script_${my_name}).execute();
-          }
-        
+       
+    #set temp up one step   
   - id: climate_new_temperature_up_script_${my_name}
     mode: single
     then:
       - if:
+          #if display is on
           condition:
             - lambda: |-
-                return id(touchscreen_display_on).state && (strcmp(id(mode).state.c_str(), "climate") == 0);
+                return id(touchscreen_display_on).state;
           then:
+            #apply new value after countdown to prevent fast updates
             - number.set: 
                 id:  set_temp_countdown_${my_name}
                 value: "${set_time}"
+            #up one step
             - lambda: |-
                 return id(climate_new_temperature_${my_name}).publish_state(id(climate_new_temperature_${my_name}).state + id(climate_step_temperature_${my_name}).state);
+            #if new temp is already at max stay with max
             - lambda: |-
                 return id(climate_new_temperature_${my_name}).publish_state((id(climate_new_temperature_${my_name}).state < id(climate_max_temperature_${my_name}).state) ? id(climate_new_temperature_${my_name}).state : id(climate_max_temperature_${my_name}).state);
-            - script.execute:
-                id: climate_new_temperature_auto_mode_${my_name}
             - component.update: touchscreen_lcd
 
+    #set temp down one step
   - id: climate_new_temperature_down_script_${my_name}
     mode: single
     then:
       - if:
+          #if display is on      
           condition:
             - lambda: |-
-                return id(touchscreen_display_on).state && (strcmp(id(mode).state.c_str(), "climate") == 0);
+                return id(touchscreen_display_on).state;
           then:
+            #apply new value after countdown to prevent fast updates
             - number.set: 
                 id:  set_temp_countdown_${my_name}
                 value: "${set_time}"
+            #up one step                
             - lambda: |-
                 return id(climate_new_temperature_${my_name}).publish_state(id(climate_new_temperature_${my_name}).state - id(climate_step_temperature_${my_name}).state);
+            #if new temp is already at min  stay with min
             - lambda: |-
                 return id(climate_new_temperature_${my_name}).publish_state((id(climate_new_temperature_${my_name}).state > id(climate_min_temperature_${my_name}).state) ? id(climate_new_temperature_${my_name}).state : id(climate_min_temperature_${my_name}).state);
-            - script.execute:
-                id: climate_new_temperature_auto_mode_${my_name}
             - component.update: touchscreen_lcd
 
   - id: climate_away_script_${my_name}
@@ -81,76 +75,54 @@ script:
       - if:
           condition:
             - lambda: |-
-                return id(touchscreen_display_on).state && (strcmp(id(mode).state.c_str(), "climate") == 0);
+                return id(touchscreen_display_on).state;
           then:
             - text_sensor.template.publish:
-                id: climate_mode
+                id: climate_mode_${my_name}
                 state: away
+
   - id: climate_sleep_script_${my_name}
     mode: single
     then:
       - if:
           condition:
             - lambda: |-
-                return id(touchscreen_display_on).state && (strcmp(id(mode).state.c_str(), "climate") == 0);
+                return id(touchscreen_display_on).state;
           then:
             - text_sensor.template.publish:
-                id: climate_mode
+                id: climate_mode_${my_name}
                 state: sleep
+
   - id: climate_home_script_${my_name}
     mode: single
     then:
       - if:
           condition:
             - lambda: |-
-                return id(touchscreen_display_on).state && (strcmp(id(mode).state.c_str(), "climate") == 0);
+                return id(touchscreen_display_on).state;
           then:
             - text_sensor.template.publish:
-                id: climate_mode
+                id: climate_mode_${my_name}
                 state: home
+
   - id: climate_comfort_script_${my_name}
     mode: single
     then:
       - if:
           condition:
             - lambda: |-
-                return id(touchscreen_display_on).state && (strcmp(id(mode).state.c_str(), "climate") == 0);
+                return id(touchscreen_display_on).state;
           then:
             - text_sensor.template.publish:
-                id: climate_mode
+                id: climate_mode_${my_name}
                 state: comfort
-            - number.set:
-                id: climate_comfort_countdown_${my_name}
-                value: !lambda |-
-                  return id(climate_comfort_duration_${my_name}).state * 60;
-  - id: climate_runtime_${my_name}
-    mode: single
-    then:
-      - if:
-          condition: 
-            - lambda: |-
-                return !id(touchscreen_display_on).state && id(climate_comfort_countdown_${my_name}).state == 0 && strcmp(id(climate_mode).state.c_str(), "away") != 0;
-          then:
-            - lambda: |- 
-                // Variables          
-                float hours = id(homeassistant_time).now().hour;
-                float minutes = id(homeassistant_time).now().minute;
-                hours = hours + minutes / 60;
-                int day = id(homeassistant_time).now().day_of_week;
+                
 
-                // Change climate mode                
-                if (hours > 6 and hours < 20 and (day == 1 or day == 2 or hours < 8.5 or hours > 15.5)) {
-                  id(climate_mode).publish_state("home");
-                } else {
-                  id(climate_mode).publish_state("sleep");
-                }
-
+#use timer when new value will be published
 time:
   - platform: homeassistant
     id: !extend homeassistant_time
     on_time: 
-      #- seconds: 0
-      #  minutes: /1
       - seconds: /1
         then:
           - if:
@@ -442,8 +414,9 @@ binary_sensor:
 sensor:
   - platform: template
     id: climate_new_temperature_${my_name}
-    name: Nouvelle temperature_${my_name}
+    name: Set temperature for ${my_name}
 
+    #get data from HA and update display on change
   - platform: homeassistant
     id: climate_target_temperature_${my_name}
     entity_id: $my_entity
@@ -508,7 +481,7 @@ sensor:
 button:
   - platform: template
     id: climate_away_button_${my_name}
-    name: Mode Absent_${my_name}
+    name: Mode Away for ${my_name}
     on_press:
       then:
         - script.execute:
@@ -516,7 +489,7 @@ button:
 
   - platform: template
     id: climate_sleep_button_${my_name}
-    name: Mode Couché_${my_name}
+    name: Mode Sleep for ${my_name}
     on_press:
       then:
         - script.execute:
@@ -524,7 +497,7 @@ button:
 
   - platform: template
     id: climate_home_button_${my_name}
-    name: Mode Maison_${my_name}
+    name: Mode Home for ${my_name}
     on_press:
       then:
         - script.execute:
@@ -532,7 +505,7 @@ button:
 
   - platform: template
     id: climate_comfort_button_${my_name}
-    name: Mode Boost_${my_name}
+    name: Mode Comfort ${my_name}
     on_press:
       then:
         - script.execute:
@@ -543,7 +516,7 @@ number:
   # Public
   - platform: template
     id: climate_away_temperature_${my_name}
-    name: Température du mode "Absent"
+    name: Away set temp ${my_name}
     icon: mdi:thermometer-low
     optimistic: true
     min_value: 10
@@ -553,7 +526,7 @@ number:
 
   - platform: template
     id: climate_sleep_temperature_${my_name}
-    name: Température du mode "Couché"
+    name: Sleep set temp ${my_name}
     icon: mdi:thermometer
     optimistic: true
     min_value: 10
@@ -563,7 +536,7 @@ number:
 
   - platform: template
     id: climate_home_temperature_${my_name}
-    name: Température du mode "Maison"
+    name: Home set temp ${my_name}
     icon: mdi:thermometer
     optimistic: true
     min_value: 10
@@ -572,18 +545,8 @@ number:
     initial_value: 19.5
 
   - platform: template
-    id: climate_comfort_duration_${my_name}
-    name: Durée du mode "Boost"
-    icon: mdi:wrench-clock
-    optimistic: true
-    min_value: 30
-    max_value: 120
-    step: 5
-    initial_value: 60
-
-  - platform: template
     id: climate_comfort_temperature_${my_name}
-    name: Température du mode "Boost"
+    name: Comfort set temp ${my_name}
     icon: mdi:thermometer-high
     optimistic: true
     min_value: 10
@@ -592,15 +555,7 @@ number:
     initial_value: 22
     
   - platform: template
-    id: climate_comfort_countdown_${my_name}
-    internal: true
-    optimistic: true
-    min_value: 0
-    max_value: 10000
-    step: 1
-    initial_value: 1
-
-  - platform: template
+    #countdown until new set temp is published
     id: set_temp_countdown_${my_name}
     internal: true
     optimistic: true
@@ -609,12 +564,16 @@ number:
     step: 1
     initial_value: 1
     on_value_range:
-      #- above: 1
-      #  then: 
-      #    - script.execute:
-      #        id: touchscreen_display_on_script
       - below: 0
         then: 
-          - logger.log: "Temp cntdwn done"
           - script.execute:
               id: climate_apply_new_temperature_${my_name}  
+
+#actual mode
+text_sensor:
+  - platform: template
+    id: climate_mode_${my_name}
+    name: Modus ${my_name}
+    on_value:
+      then:
+        - component.update: touchscreen_lcd              

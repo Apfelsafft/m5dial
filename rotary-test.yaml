@@ -49,7 +49,7 @@ external_components:
 packages:
   #always include display first, then add pages. 
   display: !include display.yaml
-  url: https://github.com/Apfelsafft/Yaml-files/tree/main/ESPhome/M5Dial
+
   climate_1: !include 
     file: page_climate.yaml
     vars:
@@ -59,7 +59,6 @@ packages:
 
   #pages are cycled in order they are defined here
   wozi_light4: !include
-    url: https://github.com/Apfelsafft/Yaml-files/tree/main/ESPhome/M5Dial
     file: page_light.yaml   
     vars:
       my_name: "wozi4"
@@ -67,14 +66,12 @@ packages:
       my_image: "mdi:lightbulb"
 
   climate_2: !include 
-    url: https://github.com/Apfelsafft/Yaml-files/tree/main/ESPhome/M5Dial
     file: page_climate.yaml    
     vars:
       my_name: "climate2"
       my_entity: "climate.heizung_truma_room"
   
   wozi_light1: !include
-    url: https://github.com/Apfelsafft/Yaml-files/tree/main/ESPhome/M5Dial
     file: page_light.yaml
     vars:
       my_name: "wozi1"

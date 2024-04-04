@@ -1,0 +1,191 @@
+# initialize M5 dial
+# and define common components & scripts
+# has to be loaded first as all component pages will !extend certain id's
+
+
+display:
+  - platform: gc9a01
+    reset_pin: GPIO8
+    cs_pin: GPIO7
+    dc_pin: GPIO4
+    rotation: 90
+    update_interval: 1h
+    id: touchscreen_lcd
+    
+touchscreen:
+  platform: ft3267
+  i2c_id:  bus_internal
+  on_update:
+    - then:
+      - script.execute:
+          id: touchscreen_display_set_countdown
+
+
+binary_sensor:
+  - platform: gpio
+    pin: GPIO42
+    name: Bouton
+    internal: true
+    filters: 
+      - invert: 
+    on_state: 
+      - then:
+        - script.execute:
+            id: touchscreen_display_set_countdown
+    on_press: 
+      - then:
+        - script.execute:
+            id: change_display_page
+
+  - platform: template
+    id: touchscreen_display_on
+    internal: true
+
+
+sensor:
+  - platform: rotary_encoder
+    id: touchscreen_rotary
+    internal: true
+    pin_a: 
+      number: GPIO40
+      mode:
+       input: true
+       pullup: true
+    pin_b: 
+      number: GPIO41
+      mode:
+       input: true
+       pullup: true
+    accuracy_decimals: 0
+    on_value: 
+      - then:
+        - script.execute:
+            #fire up display by setting countdown 
+            #set number touchscreen_display_countdown to value of touchscreen_display_delay 
+            id: touchscreen_display_set_countdown
+
+number:
+    #controls display on/off 
+  - platform: template
+    id: touchscreen_display_countdown
+    internal: true
+    optimistic: true
+    min_value: 0
+    max_value: 60
+    step: 1
+    initial_value: 10
+    on_value_range:
+      - above: 1
+        then: 
+          - script.execute:
+              id: touchscreen_display_on_script
+      - below: 0
+        then: 
+          - script.execute:
+              id: touchscreen_display_off_script
+   
+    #set display on time
+  - platform: template
+    id: touchscreen_display_delay
+    name: Display-on time
+    icon: mdi:wrench-clock
+    optimistic: true
+    min_value: 0
+    max_value: 60
+    step: 5
+    initial_value: 10
+
+    #set display backlight brightness
+  - platform: template
+    id: touchscreen_display_brightness
+    name: Helligkeit Display
+    icon: mdi:brightness-6
+    optimistic: true
+    min_value: 0
+    max_value: 100
+    step: 5
+    initial_value: 50    
+
+
+script:
+    # setting display countdown to any number to light up display for countdown time
+  - id: touchscreen_display_set_countdown  
+    mode: single
+    then:
+      - number.set:
+          id: touchscreen_display_countdown
+          value: !lambda |-
+            return id(touchscreen_display_delay).state;
+    
+    #display on 
+    #triggered by e.g. number touchscreen_display_countdown
+  - id: touchscreen_display_on_script
+    mode: single
+    then:
+      - light.turn_on:
+          id: touchscreen_back_lighting
+          brightness: !lambda |-
+            return id(touchscreen_display_brightness).state / 100;
+      - sensor.rotary_encoder.set_value:
+          id: touchscreen_rotary
+          value: 0
+      - delay: 500ms
+      - lambda: |-
+          id(touchscreen_display_on).publish_state(true);
+
+  - id: touchscreen_display_off_script
+    mode: single
+    then:
+      - light.turn_off:
+          id: touchscreen_back_lighting
+      - lambda: |-
+          id(touchscreen_display_on).publish_state(false);            
+
+    #cycle through pages as included via packages as templates
+    #in order of their including
+  - id: change_display_page
+    mode: single
+    then:
+      - display.page.show_next: touchscreen_lcd
+      - component.update: touchscreen_lcd
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+    on_time: 
+      - seconds: /1
+        then:
+          - if:
+              condition:
+                - number.in_range:
+                    id: touchscreen_display_countdown
+                    above: 1
+              then:
+                - number.decrement:
+                    id: touchscreen_display_countdown
+                    cycle: false
+          - if:
+              condition:
+                - number.in_range:
+                    id: touchscreen_button_freeze_countdown
+                    above: 1
+              then:
+                - number.decrement:
+                    id: touchscreen_button_freeze_countdown
+                    cycle: false
+
+light:
+    #adjust dislay brightness
+  - platform: monochromatic
+    id: touchscreen_back_lighting
+    name: Display Backlight
+    internal: true
+    output: touchscreen_back_lighting_output
+    default_transition_length: 500ms
+
+output:
+  - id: touchscreen_back_lighting_output
+    platform: ledc
+    pin: GPIO09
+    max_power: 1
+    min_power: 0                    
