@@ -106,7 +106,6 @@ number:
     step: 5
     initial_value: 50    
 
-
 script:
     # setting display countdown to any number to light up display for countdown time
   - id: touchscreen_display_set_countdown  
@@ -189,3 +188,81 @@ output:
     pin: GPIO09
     max_power: 1
     min_power: 0                    
+
+
+font:
+  - file: "gfonts://Roboto"
+    id: roboto20
+    size: 20
+
+  - file: "gfonts://Roboto"
+    id: roboto30
+    size: 30    
+
+  - file: "gfonts://Roboto"
+    id: roboto40
+    size: 40
+
+  - file: "gfonts://Roboto"
+    id: roboto50
+    size: 50
+
+color:
+  - id: my_red
+    red: 100%
+    green: 3%
+    blue: 5%
+  - id: my_green
+    hex: 4CBB17
+  - id: my_blue
+    red: 3%
+    green: 5%
+    blue: 100%
+  - id: my_yellow
+    hex: FFFF00 
+  - id: my_light_blue
+    hex: 145DA0
+  - id: my_light_red
+    hex: fc6d6d
+  - id: my_light_orange
+    hex: FD7F20
+  - id: my_light_yellow
+    hex: B58B00
+    #
+  - id: activated_button_color
+    hex: 145DA0
+  - id: desactivated_button_color
+    hex: AAAAAA
+  - id: red
+    hex: FF2800
+  - id: white
+    hex: FFFFFF
+  - id: gray
+    hex: 7A7070
+  - id: orange
+    hex: FA6607
+  - id: dark_orange
+    hex: FF8C00
+
+image:
+  - file: mdi:snowflake
+    id: climate_away_mode_icon
+    resize: 40x40
+  - file: mdi:sleep
+    id: climate_sleep_mode_icon
+    resize: 40x40
+  - file: mdi:home
+    id: climate_home_mode_icon
+    resize: 40x40    
+  - file: mdi:heat-wave
+    id: climate_comfort_mode_icon
+    resize: 40x40
+  - file: mdi:thermometer
+    id: climate_thermometer_icon
+    resize: 20x20
+  - file: mdi:temperature-celsius
+    id: climate_celcius_icon
+    resize: 20x20 
+  - file: mdi:fire
+    id: climate_fire_icon
+    resize: 40x40     

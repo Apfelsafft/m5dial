@@ -116,7 +116,7 @@ script:
             - text_sensor.template.publish:
                 id: climate_mode_${my_name}
                 state: comfort
-                
+
 
 #use timer when new value will be published
 time:
@@ -148,93 +148,93 @@ display:
           float screenwidth = it.get_width();
           float halfscreenheight = screenheight / 2;
           float halfscreenwidth = screenwidth / 2;
-          float currentTemperatureCircleAngle = (360 - id(climate_bottom_gauge_angle).state) * ((id(climate_current_temperature_${my_name}).state - id(climate_min_temperature_${my_name}).state) / (id(climate_max_temperature_${my_name}).state - id(climate_min_temperature_${my_name}).state));
-          float targetTemperatureCircleAngle = (360 - id(climate_bottom_gauge_angle).state) * ((id(climate_new_temperature_${my_name}).state - id(climate_min_temperature_${my_name}).state) / (id(climate_max_temperature_${my_name}).state - id(climate_min_temperature_${my_name}).state));
-          float startAngle = id(climate_bottom_gauge_angle).state / 2;
+          float currentTemperatureCircleAngle = (360 - id(climate_bottom_gauge_angle_${my_name}).state) * ((id(climate_current_temperature_${my_name}).state - id(climate_min_temperature_${my_name}).state) / (id(climate_max_temperature_${my_name}).state - id(climate_min_temperature_${my_name}).state));
+          float targetTemperatureCircleAngle = (360 - id(climate_bottom_gauge_angle_${my_name}).state) * ((id(climate_new_temperature_${my_name}).state - id(climate_min_temperature_${my_name}).state) / (id(climate_max_temperature_${my_name}).state - id(climate_min_temperature_${my_name}).state));
+          float startAngle = id(climate_bottom_gauge_angle_${my_name}).state / 2;
           float firstStepAngle = (currentTemperatureCircleAngle < targetTemperatureCircleAngle) ? currentTemperatureCircleAngle : targetTemperatureCircleAngle;
           float secondStepAngle = (currentTemperatureCircleAngle > targetTemperatureCircleAngle) ? firstStepAngle : targetTemperatureCircleAngle;
-          float endAngle = 360 - id(climate_bottom_gauge_angle).state;
+          float endAngle = 360 - id(climate_bottom_gauge_angle_${my_name}).state;
 
           // Display temperature arc circle
           it
             .filled_circle(
-              halfscreenwidth + (halfscreenwidth - 10) * cos((90 + startAngle) * id(pi).state / 180),
-              halfscreenheight + (halfscreenheight - 10) * sin((90 + startAngle) * id(pi).state / 180), 
+              halfscreenwidth + (halfscreenwidth - 10) * cos((90 + startAngle) * id(pi_${my_name}).state / 180),
+              halfscreenheight + (halfscreenheight - 10) * sin((90 + startAngle) * id(pi_${my_name}).state / 180), 
               5, 
               id(dark_orange));
           it
             .filled_circle(
-              halfscreenwidth + (halfscreenwidth - 10) * cos((90 + startAngle + endAngle) * id(pi).state / 180),
-              halfscreenheight + (halfscreenheight - 10) * sin((90 + startAngle + endAngle) * id(pi).state / 180), 
+              halfscreenwidth + (halfscreenwidth - 10) * cos((90 + startAngle + endAngle) * id(pi_${my_name}).state / 180),
+              halfscreenheight + (halfscreenheight - 10) * sin((90 + startAngle + endAngle) * id(pi_${my_name}).state / 180), 
               5, 
               id(gray));
 
           for (int i = startAngle; i <= startAngle + firstStepAngle; i++) {
             it
               .filled_triangle(
-                halfscreenwidth + (halfscreenwidth - 15) * cos((90 + i) * id(pi).state / 180),
-                halfscreenheight + (halfscreenheight - 15) * sin((90 + i) * id(pi).state / 180), 
-                halfscreenwidth + (halfscreenwidth - 5) * cos((90 + i) * id(pi).state / 180), 
-                halfscreenheight + (halfscreenheight - 5) * sin((90 + i) * id(pi).state / 180), 
-                halfscreenwidth + (halfscreenwidth - 5) * cos((90 + (i + 1)) * id(pi).state / 180), 
-                halfscreenheight + (halfscreenheight - 5) * sin((90 + (i + 1)) * id(pi).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 15) * cos((90 + i) * id(pi_${my_name}).state / 180),
+                halfscreenheight + (halfscreenheight - 15) * sin((90 + i) * id(pi_${my_name}).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 5) * cos((90 + i) * id(pi_${my_name}).state / 180), 
+                halfscreenheight + (halfscreenheight - 5) * sin((90 + i) * id(pi_${my_name}).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 5) * cos((90 + (i + 1)) * id(pi_${my_name}).state / 180), 
+                halfscreenheight + (halfscreenheight - 5) * sin((90 + (i + 1)) * id(pi_${my_name}).state / 180), 
                 id(dark_orange));
             it
               .filled_triangle(
-                halfscreenwidth + (halfscreenwidth - 15) * cos((90 + i) * id(pi).state / 180),
-                halfscreenheight + (halfscreenheight - 15) * sin((90 + i) * id(pi).state / 180), 
-                halfscreenwidth + (halfscreenwidth - 5) * cos((90 + (i + 1)) * id(pi).state / 180), 
-                halfscreenheight + (halfscreenheight - 5) * sin((90 + (i + 1)) * id(pi).state / 180), 
-                halfscreenwidth + (halfscreenwidth - 15) * cos((90 + (i + 1)) * id(pi).state / 180),
-                halfscreenheight + (halfscreenheight - 15) * sin((90 + (i + 1)) * id(pi).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 15) * cos((90 + i) * id(pi_${my_name}).state / 180),
+                halfscreenheight + (halfscreenheight - 15) * sin((90 + i) * id(pi_${my_name}).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 5) * cos((90 + (i + 1)) * id(pi_${my_name}).state / 180), 
+                halfscreenheight + (halfscreenheight - 5) * sin((90 + (i + 1)) * id(pi_${my_name}).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 15) * cos((90 + (i + 1)) * id(pi_${my_name}).state / 180),
+                halfscreenheight + (halfscreenheight - 15) * sin((90 + (i + 1)) * id(pi_${my_name}).state / 180), 
                 id(dark_orange));
           }
           for (int i = startAngle + firstStepAngle; i <= startAngle + secondStepAngle; i++) {
             it
               .filled_triangle(
-                halfscreenwidth + (halfscreenwidth - 15) * cos((90 + i) * id(pi).state / 180),
-                halfscreenheight + (halfscreenheight - 15) * sin((90 + i) * id(pi).state / 180), 
-                halfscreenwidth + (halfscreenwidth - 5) * cos((90 + i) * id(pi).state / 180), 
-                halfscreenheight + (halfscreenheight - 5) * sin((90 + i) * id(pi).state / 180), 
-                halfscreenwidth + (halfscreenwidth - 5) * cos((90 + (i + 1)) * id(pi).state / 180), 
-                halfscreenheight + (halfscreenheight - 5) * sin((90 + (i + 1)) * id(pi).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 15) * cos((90 + i) * id(pi_${my_name}).state / 180),
+                halfscreenheight + (halfscreenheight - 15) * sin((90 + i) * id(pi_${my_name}).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 5) * cos((90 + i) * id(pi_${my_name}).state / 180), 
+                halfscreenheight + (halfscreenheight - 5) * sin((90 + i) * id(pi_${my_name}).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 5) * cos((90 + (i + 1)) * id(pi_${my_name}).state / 180), 
+                halfscreenheight + (halfscreenheight - 5) * sin((90 + (i + 1)) * id(pi_${my_name}).state / 180), 
                 id(orange));
             it
               .filled_triangle(
-                halfscreenwidth + (halfscreenwidth - 15) * cos((90 + i) * id(pi).state / 180),
-                halfscreenheight + (halfscreenheight - 15) * sin((90 + i) * id(pi).state / 180), 
-                halfscreenwidth + (halfscreenwidth - 5) * cos((90 + (i + 1)) * id(pi).state / 180), 
-                halfscreenheight + (halfscreenheight - 5) * sin((90 + (i + 1)) * id(pi).state / 180), 
-                halfscreenwidth + (halfscreenwidth - 15) * cos((90 + (i + 1)) * id(pi).state / 180),
-                halfscreenheight + (halfscreenheight - 15) * sin((90 + (i + 1)) * id(pi).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 15) * cos((90 + i) * id(pi_${my_name}).state / 180),
+                halfscreenheight + (halfscreenheight - 15) * sin((90 + i) * id(pi_${my_name}).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 5) * cos((90 + (i + 1)) * id(pi_${my_name}).state / 180), 
+                halfscreenheight + (halfscreenheight - 5) * sin((90 + (i + 1)) * id(pi_${my_name}).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 15) * cos((90 + (i + 1)) * id(pi_${my_name}).state / 180),
+                halfscreenheight + (halfscreenheight - 15) * sin((90 + (i + 1)) * id(pi_${my_name}).state / 180), 
                 id(orange));
           }
           for (int i = startAngle + secondStepAngle; i <= startAngle + endAngle; i++) {
             it
               .filled_triangle(
-                halfscreenwidth + (halfscreenwidth - 15) * cos((90 + i) * id(pi).state / 180),
-                halfscreenheight + (halfscreenheight - 15) * sin((90 + i) * id(pi).state / 180), 
-                halfscreenwidth + (halfscreenwidth - 5) * cos((90 + i) * id(pi).state / 180), 
-                halfscreenheight + (halfscreenheight - 5) * sin((90 + i) * id(pi).state / 180), 
-                halfscreenwidth + (halfscreenwidth - 5) * cos((90 + (i + 1)) * id(pi).state / 180), 
-                halfscreenheight + (halfscreenheight - 5) * sin((90 + (i + 1)) * id(pi).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 15) * cos((90 + i) * id(pi_${my_name}).state / 180),
+                halfscreenheight + (halfscreenheight - 15) * sin((90 + i) * id(pi_${my_name}).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 5) * cos((90 + i) * id(pi_${my_name}).state / 180), 
+                halfscreenheight + (halfscreenheight - 5) * sin((90 + i) * id(pi_${my_name}).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 5) * cos((90 + (i + 1)) * id(pi_${my_name}).state / 180), 
+                halfscreenheight + (halfscreenheight - 5) * sin((90 + (i + 1)) * id(pi_${my_name}).state / 180), 
                 id(gray));
             it
               .filled_triangle(
-                halfscreenwidth + (halfscreenwidth - 15) * cos((90 + i) * id(pi).state / 180),
-                halfscreenheight + (halfscreenheight - 15) * sin((90 + i) * id(pi).state / 180), 
-                halfscreenwidth + (halfscreenwidth - 5) * cos((90 + (i + 1)) * id(pi).state / 180), 
-                halfscreenheight + (halfscreenheight - 5) * sin((90 + (i + 1)) * id(pi).state / 180), 
-                halfscreenwidth + (halfscreenwidth - 15) * cos((90 + (i + 1)) * id(pi).state / 180),
-                halfscreenheight + (halfscreenheight - 15) * sin((90 + (i + 1)) * id(pi).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 15) * cos((90 + i) * id(pi_${my_name}).state / 180),
+                halfscreenheight + (halfscreenheight - 15) * sin((90 + i) * id(pi_${my_name}).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 5) * cos((90 + (i + 1)) * id(pi_${my_name}).state / 180), 
+                halfscreenheight + (halfscreenheight - 5) * sin((90 + (i + 1)) * id(pi_${my_name}).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 15) * cos((90 + (i + 1)) * id(pi_${my_name}).state / 180),
+                halfscreenheight + (halfscreenheight - 15) * sin((90 + (i + 1)) * id(pi_${my_name}).state / 180), 
                 id(gray));
           }
 
           // Current temperature round
           it
             .filled_circle(
-              halfscreenwidth + (halfscreenwidth - 10) * cos((90 + startAngle + currentTemperatureCircleAngle) * id(pi).state / 180),
-              halfscreenheight + (halfscreenheight - 10) * sin((90 + startAngle + currentTemperatureCircleAngle) * id(pi).state / 180), 
+              halfscreenwidth + (halfscreenwidth - 10) * cos((90 + startAngle + currentTemperatureCircleAngle) * id(pi_${my_name}).state / 180),
+              halfscreenheight + (halfscreenheight - 10) * sin((90 + startAngle + currentTemperatureCircleAngle) * id(pi_${my_name}).state / 180), 
               2, 
               id(white));
 
@@ -242,14 +242,14 @@ display:
           if (firstStepAngle < secondStepAngle) {
             it
               .filled_circle(
-                halfscreenwidth + (halfscreenwidth - 10) * cos((90 + startAngle + firstStepAngle) * id(pi).state / 180),
-                halfscreenheight + (halfscreenheight - 10) * sin((90 + startAngle + firstStepAngle) * id(pi).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 10) * cos((90 + startAngle + firstStepAngle) * id(pi_${my_name}).state / 180),
+                halfscreenheight + (halfscreenheight - 10) * sin((90 + startAngle + firstStepAngle) * id(pi_${my_name}).state / 180), 
                 5, 
                 id(orange));
             it
               .filled_circle(
-                halfscreenwidth + (halfscreenwidth - 10) * cos((90 + startAngle + firstStepAngle) * id(pi).state / 180),
-                halfscreenheight + (halfscreenheight - 10) * sin((90 + startAngle + firstStepAngle) * id(pi).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 10) * cos((90 + startAngle + firstStepAngle) * id(pi_${my_name}).state / 180),
+                halfscreenheight + (halfscreenheight - 10) * sin((90 + startAngle + firstStepAngle) * id(pi_${my_name}).state / 180), 
                 2, 
                 id(dark_orange));
           } 
@@ -257,68 +257,68 @@ display:
           // Target temperature round
           it
             .filled_circle(
-              halfscreenwidth + (halfscreenwidth - 10) * cos((90 + startAngle + targetTemperatureCircleAngle) * id(pi).state / 180),
-              halfscreenheight + (halfscreenheight - 10) * sin((90 + startAngle + targetTemperatureCircleAngle) * id(pi).state / 180), 
+              halfscreenwidth + (halfscreenwidth - 10) * cos((90 + startAngle + targetTemperatureCircleAngle) * id(pi_${my_name}).state / 180),
+              halfscreenheight + (halfscreenheight - 10) * sin((90 + startAngle + targetTemperatureCircleAngle) * id(pi_${my_name}).state / 180), 
               7, 
               id(orange));
           it
             .filled_circle(
-              halfscreenwidth + (halfscreenwidth - 10) * cos((90 + startAngle + targetTemperatureCircleAngle) * id(pi).state / 180),
-              halfscreenheight + (halfscreenheight - 10) * sin((90 + startAngle + targetTemperatureCircleAngle) * id(pi).state / 180), 
+              halfscreenwidth + (halfscreenwidth - 10) * cos((90 + startAngle + targetTemperatureCircleAngle) * id(pi_${my_name}).state / 180),
+              halfscreenheight + (halfscreenheight - 10) * sin((90 + startAngle + targetTemperatureCircleAngle) * id(pi_${my_name}).state / 180), 
               5, 
               id(white));
 
           // Dislay icons
           it
             .image(
-              halfscreenwidth + halfscreenwidth * id(climate_icon_distance_radius).state * cos((-90 - 1.5 * id(climate_icon_separation_angle).state) * id(pi).state / 180), 
-              halfscreenheight + halfscreenheight * id(climate_icon_distance_radius).state * sin((-90 - 1.5 * id(climate_icon_separation_angle).state) *id(pi).state / 180), 
+              halfscreenwidth + halfscreenwidth * id(climate_icon_distance_radius_${my_name}).state * cos((-90 - 1.5 * id(climate_icon_separation_angle_${my_name}).state) * id(pi_${my_name}).state / 180), 
+              halfscreenheight + halfscreenheight * id(climate_icon_distance_radius_${my_name}).state * sin((-90 - 1.5 * id(climate_icon_separation_angle_${my_name}).state) *id(pi_${my_name}).state / 180), 
               climate_away_mode_icon, 
               ImageAlign::CENTER,
               (strcmp(id(climate_mode).state.c_str(), "away") == 0) ? id(activated_button_color) : id(desactivated_button_color));
           it
             .image(
-              halfscreenwidth + halfscreenwidth * id(climate_icon_distance_radius).state * cos((-90 - 0.5 * id(climate_icon_separation_angle).state) * id(pi).state / 180), 
-              halfscreenheight + halfscreenheight * id(climate_icon_distance_radius).state * sin((-90 - 0.5 * id(climate_icon_separation_angle).state) *id(pi).state / 180), 
+              halfscreenwidth + halfscreenwidth * id(climate_icon_distance_radius_${my_name}).state * cos((-90 - 0.5 * id(climate_icon_separation_angle_${my_name}).state) * id(pi_${my_name}).state / 180), 
+              halfscreenheight + halfscreenheight * id(climate_icon_distance_radius_${my_name}).state * sin((-90 - 0.5 * id(climate_icon_separation_angle_${my_name}).state) *id(pi_${my_name}).state / 180), 
               climate_sleep_mode_icon, 
               ImageAlign::CENTER,
               (strcmp(id(climate_mode).state.c_str(), "sleep") == 0) ? id(activated_button_color) : id(desactivated_button_color));
           it
             .image(
-              halfscreenwidth + halfscreenwidth * id(climate_icon_distance_radius).state * cos((-90 + 0.5 * id(climate_icon_separation_angle).state) * id(pi).state / 180), 
-              halfscreenheight + halfscreenheight * id(climate_icon_distance_radius).state * sin((-90 + 0.5 * id(climate_icon_separation_angle).state) *id(pi).state / 180), 
+              halfscreenwidth + halfscreenwidth * id(climate_icon_distance_radius_${my_name}).state * cos((-90 + 0.5 * id(climate_icon_separation_angle_${my_name}).state) * id(pi_${my_name}).state / 180), 
+              halfscreenheight + halfscreenheight * id(climate_icon_distance_radius_${my_name}).state * sin((-90 + 0.5 * id(climate_icon_separation_angle_${my_name}).state) *id(pi_${my_name}).state / 180), 
               climate_home_mode_icon, 
               ImageAlign::CENTER,
               (strcmp(id(climate_mode).state.c_str(), "home") == 0) ? id(activated_button_color) : id(desactivated_button_color));
           it
             .image(
-              halfscreenwidth + halfscreenwidth * id(climate_icon_distance_radius).state * cos((-90 + 1.5 * id(climate_icon_separation_angle).state) * id(pi).state / 180), 
-              halfscreenheight + halfscreenheight * id(climate_icon_distance_radius).state * sin((-90 + 1.5 * id(climate_icon_separation_angle).state)*id(pi).state / 180), 
+              halfscreenwidth + halfscreenwidth * id(climate_icon_distance_radius_${my_name}).state * cos((-90 + 1.5 * id(climate_icon_separation_angle_${my_name}).state) * id(pi_${my_name}).state / 180), 
+              halfscreenheight + halfscreenheight * id(climate_icon_distance_radius_${my_name}).state * sin((-90 + 1.5 * id(climate_icon_separation_angle_${my_name}).state)*id(pi_${my_name}).state / 180), 
               climate_comfort_mode_icon, 
               ImageAlign::CENTER,
               (strcmp(id(climate_mode).state.c_str(), "comfort") == 0) ? id(activated_button_color) : id(desactivated_button_color));
  
           // Display temperature
-          it.printf(halfscreenwidth, halfscreenheight - id(climate_temperature_distance_from_center).state, id(roboto50), TextAlign::TOP_CENTER, "%2.1f", id(climate_new_temperature_${my_name}).state, id(white));
-          it.printf(halfscreenwidth, halfscreenheight - id(climate_temperature_distance_from_center).state + 55, id(roboto30), TextAlign::TOP_CENTER, "%2.1f", id(climate_current_temperature_${my_name}).state, id(white));
+          it.printf(halfscreenwidth, halfscreenheight - id(climate_temperature_distance_from_center_${my_name}).state, id(roboto50), TextAlign::TOP_CENTER, "%2.1f", id(climate_new_temperature_${my_name}).state, id(white));
+          it.printf(halfscreenwidth, halfscreenheight - id(climate_temperature_distance_from_center_${my_name}).state + 55, id(roboto30), TextAlign::TOP_CENTER, "%2.1f", id(climate_current_temperature_${my_name}).state, id(white));
           it
             .image(
               halfscreenwidth - 50, 
-              halfscreenheight - id(climate_temperature_distance_from_center).state + 62, 
+              halfscreenheight - id(climate_temperature_distance_from_center_${my_name}).state + 62, 
               climate_thermometer_icon, 
               ImageAlign::TOP_LEFT,
               id(white));
           it
             .image(
               halfscreenwidth + 30, 
-              halfscreenheight - id(climate_temperature_distance_from_center).state + 62, 
+              halfscreenheight - id(climate_temperature_distance_from_center_${my_name}).state + 62, 
               climate_celcius_icon, 
               ImageAlign::TOP_LEFT,
               id(white));
           //it
           //  .image(
           //    halfscreenwidth, 
-          //    halfscreenheight - id(climate_temperature_distance_from_center).state + 112, 
+          //    halfscreenheight - id(climate_temperature_distance_from_center_${my_name}).state + 112, 
           //    climate_fire_icon, 
           //    ImageAlign::CENTER,
           //    (id(climate_new_temperature_${my_name}).state > id(climate_current_temperature_${my_name}).state) ? id(red) : id(gray));
@@ -568,6 +568,67 @@ number:
         then: 
           - script.execute:
               id: climate_apply_new_temperature_${my_name}  
+
+
+number:
+  # Public
+
+
+  # Private
+  - platform: template
+    id: touchscreen_button_freeze_countdown_${my_name}
+    internal: true
+    optimistic: true
+    min_value: 0
+    max_value: 2
+    step: 1
+    initial_value: 1
+
+  - platform: template
+    id: pi_${my_name}
+    internal: true
+    optimistic: true
+    min_value: 3.14159265359
+    max_value: 3.14159265360
+    step: 0.00000000001
+    initial_value: 3.14159265359
+
+  - platform: template
+    id: climate_icon_distance_radius_${my_name}
+    internal: true
+    optimistic: true
+    min_value: 0
+    max_value: 1
+    step: 0.01
+    initial_value: 0.6
+
+  - platform: template
+    id: climate_icon_separation_angle_${my_name}
+    internal: true
+    optimistic: true
+    min_value: 30
+    max_value: 60
+    step: 1
+    initial_value: 55
+
+  - platform: template
+    id: climate_bottom_gauge_angle_${my_name}
+    internal: true
+    optimistic: true
+    min_value: 30
+    max_value: 180
+    step: 1
+    initial_value: 70
+
+  - platform: template
+    id: climate_temperature_distance_from_center_${my_name}
+    internal: true
+    optimistic: true
+    min_value: 0
+    max_value: 80
+    step: 1
+    #lower value more to the bottom, higher value more to the top
+    initial_value: 40              
 
 #actual mode
 text_sensor:
