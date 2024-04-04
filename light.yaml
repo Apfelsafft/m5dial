@@ -12,6 +12,28 @@ image:
 #make sure to define
 # sensors that provide actual state (platform home assistant)    
 # 
+
+sensor:
+  - platform: rotary_encoder
+    id: !extend touchscreen_rotary
+    on_clockwise: 
+      then:
+          - if:
+              condition:
+                display.is_displaying_page: ${my_name}
+              then:
+                - script.execute:
+                    id: light_new_brightness_up_script_${my_name}
+    on_anticlockwise: 
+      then:
+          - if:
+              condition:
+                display.is_displaying_page: ${my_name}
+              then:
+                - script.execute:
+                    id: light_new_brightness_down_script_${my_name}   
+
+
 # define touchscreen areas
 binary_sensor:
   - platform: touchscreen
@@ -34,7 +56,20 @@ binary_sensor:
       then:
         - component.update: touchscreen_lcd
 
-#define scrupt on how to react on touches
+number:
+  # Public
+  - platform: template
+    id: light_new_brightness_${my_name}
+    name: brightness_${my_name}
+    icon: mdi:thermometer-low
+    optimistic: true
+    min_value: 0
+    max_value: 100
+    step: 10
+    initial_value: 5
+
+
+#define script on how to react on touches
 script:
   - id: lights_toggle_script_${my_name}
     mode: single
@@ -50,7 +85,68 @@ script:
                   entity_id: ${my_entity}
             - logger.log: "Toggle! ${my_name}"
             - delay: 500ms
-            
+
+    #set new temperature
+  - id: light_apply_new_brightness_${my_name}
+    mode: single
+    then:
+      - logger.log: "send set brightness"
+      - delay: 500ms
+      - if:
+          condition:
+            - lambda: |-
+                return id(touchscreen_display_on).state && id(light_new_brightness_${my_name}).state >= 0 && id(light_new_brightness_${my_name}).state <= 100;
+          then:
+            - logger.log: "send to HA"
+            - homeassistant.service:
+                service: light.turn_on
+                data:
+                  entity_id: ${my_entity}
+                  brightness_pct: !lambda |-
+                    return id(light_new_brightness_${my_name}).state;
+       
+    #set brightness up one step   
+  - id: light_new_brightness_up_script_${my_name}
+    mode: single
+    then:
+      - if:
+          #if display is on
+          condition:
+            - lambda: |-
+                return id(touchscreen_display_on).state;
+          then:
+            #up one step
+            - lambda: |-
+                return id(light_new_brightness_${my_name}).publish_state(id(light_new_brightness_${my_name}).state + 10);
+            #if new brightness is already at max stay with max
+            - lambda: |-
+                return id(light_new_brightness_${my_name}).publish_state((id(light_new_brightness_${my_name}).state < 100) ? id(light_new_brightness_${my_name}).state : 100);
+            - script.execute:
+                id: light_apply_new_brightness_${my_name}
+            - component.update: touchscreen_lcd
+
+    #set brightness down one step
+  - id: light_new_brightness_down_script_${my_name}
+    mode: single
+    then:
+      - if:
+          #if display is on      
+          condition:
+            - lambda: |-
+                return id(touchscreen_display_on).state;
+          then:
+            #up one step                
+            - lambda: |-
+                return id(light_new_brightness_${my_name}).publish_state(id(light_new_brightness_${my_name}).state - 10);
+            #if new brightness is already at min stay with min
+            - lambda: |-
+                return id(light_new_brightness_${my_name}).publish_state((id(light_new_brightness_${my_name}).state > 0) ? id(light_new_brightness_${my_name}).state : 0);
+            - script.execute:
+                id: light_apply_new_brightness_${my_name}                
+            - component.update: touchscreen_lcd
+
+
+
 #define display page            
 display:
   - platform: gc9a01
@@ -73,6 +169,7 @@ display:
               (id(lights_switch_${my_name}).state) ? id(my_yellow) : id(my_light_blue));
 
           it.printf(halfscreenwidth, halfscreenheight +30, id(roboto30), TextAlign::TOP_CENTER, "${my_name}", ${my_name}, id(white));
+          it.printf(halfscreenwidth, halfscreenheight +65, id(roboto30), TextAlign::TOP_CENTER, "%2.0f", id(light_new_brightness_${my_name}).state, id(white));
           // Display the switch menu
           //it.filled_circle(halfscreenwidth -6, 225, 3);
           //it.circle(halfscreenwidth +6, 225, 3);
