@@ -12,12 +12,14 @@ script:
   - id: climate_apply_new_temperature_${my_name}
     mode: single
     then:
+      - logger.log: "send set temp"
       - delay: 500ms
       - if:
           condition:
             - lambda: |-
                 return id(touchscreen_display_on).state && id(climate_new_temperature_${my_name}).state >= 5;
           then:
+            - logger.log: "send to HA"
             - homeassistant.service:
                 service: climate.set_temperature
                 data:
@@ -275,28 +277,28 @@ display:
               halfscreenheight + halfscreenheight * id(climate_icon_distance_radius_${my_name}).state * sin((-90 - 1.5 * id(climate_icon_separation_angle_${my_name}).state) *id(pi_${my_name}).state / 180), 
               climate_away_mode_icon, 
               ImageAlign::CENTER,
-              (strcmp(id(climate_mode).state.c_str(), "away") == 0) ? id(activated_button_color) : id(desactivated_button_color));
+              (strcmp(id(climate_mode_${my_name}).state.c_str(), "away") == 0) ? id(activated_button_color) : id(desactivated_button_color));
           it
             .image(
               halfscreenwidth + halfscreenwidth * id(climate_icon_distance_radius_${my_name}).state * cos((-90 - 0.5 * id(climate_icon_separation_angle_${my_name}).state) * id(pi_${my_name}).state / 180), 
               halfscreenheight + halfscreenheight * id(climate_icon_distance_radius_${my_name}).state * sin((-90 - 0.5 * id(climate_icon_separation_angle_${my_name}).state) *id(pi_${my_name}).state / 180), 
               climate_sleep_mode_icon, 
               ImageAlign::CENTER,
-              (strcmp(id(climate_mode).state.c_str(), "sleep") == 0) ? id(activated_button_color) : id(desactivated_button_color));
+              (strcmp(id(climate_mode_${my_name}).state.c_str(), "sleep") == 0) ? id(activated_button_color) : id(desactivated_button_color));
           it
             .image(
               halfscreenwidth + halfscreenwidth * id(climate_icon_distance_radius_${my_name}).state * cos((-90 + 0.5 * id(climate_icon_separation_angle_${my_name}).state) * id(pi_${my_name}).state / 180), 
               halfscreenheight + halfscreenheight * id(climate_icon_distance_radius_${my_name}).state * sin((-90 + 0.5 * id(climate_icon_separation_angle_${my_name}).state) *id(pi_${my_name}).state / 180), 
               climate_home_mode_icon, 
               ImageAlign::CENTER,
-              (strcmp(id(climate_mode).state.c_str(), "home") == 0) ? id(activated_button_color) : id(desactivated_button_color));
+              (strcmp(id(climate_mode_${my_name}).state.c_str(), "home") == 0) ? id(activated_button_color) : id(desactivated_button_color));
           it
             .image(
               halfscreenwidth + halfscreenwidth * id(climate_icon_distance_radius_${my_name}).state * cos((-90 + 1.5 * id(climate_icon_separation_angle_${my_name}).state) * id(pi_${my_name}).state / 180), 
               halfscreenheight + halfscreenheight * id(climate_icon_distance_radius_${my_name}).state * sin((-90 + 1.5 * id(climate_icon_separation_angle_${my_name}).state)*id(pi_${my_name}).state / 180), 
               climate_comfort_mode_icon, 
               ImageAlign::CENTER,
-              (strcmp(id(climate_mode).state.c_str(), "comfort") == 0) ? id(activated_button_color) : id(desactivated_button_color));
+              (strcmp(id(climate_mode_${my_name}).state.c_str(), "comfort") == 0) ? id(activated_button_color) : id(desactivated_button_color));
  
           // Display temperature
           it.printf(halfscreenwidth, halfscreenheight - id(climate_temperature_distance_from_center_${my_name}).state, id(roboto50), TextAlign::TOP_CENTER, "%2.1f", id(climate_new_temperature_${my_name}).state, id(white));
@@ -569,12 +571,6 @@ number:
           - script.execute:
               id: climate_apply_new_temperature_${my_name}  
 
-
-number:
-  # Public
-
-
-  # Private
   - platform: template
     id: touchscreen_button_freeze_countdown_${my_name}
     internal: true

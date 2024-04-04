@@ -24,7 +24,7 @@ touchscreen:
 binary_sensor:
   - platform: gpio
     pin: GPIO42
-    name: Bouton
+    name: Button
     internal: true
     filters: 
       - invert: 
@@ -151,27 +151,27 @@ script:
 time:
   - platform: homeassistant
     id: homeassistant_time
-    on_time: 
-      - seconds: /1
-        then:
-          - if:
-              condition:
-                - number.in_range:
-                    id: touchscreen_display_countdown
-                    above: 1
-              then:
-                - number.decrement:
-                    id: touchscreen_display_countdown
-                    cycle: false
-          - if:
-              condition:
-                - number.in_range:
-                    id: touchscreen_button_freeze_countdown
-                    above: 1
-              then:
-                - number.decrement:
-                    id: touchscreen_button_freeze_countdown
-                    cycle: false
+#    on_time: 
+#      - seconds: /1
+#        then:
+#          - if:
+#              condition:
+#                - number.in_range:
+#                    id: touchscreen_display_countdown
+#                    above: 1
+#              then:
+#                - number.decrement:
+#                    id: touchscreen_display_countdown
+#                    cycle: false
+#          - if:
+#              condition:
+#                - number.in_range:
+#                    id: touchscreen_button_freeze_countdown
+#                    above: 1
+#              then:
+#                - number.decrement:
+#                    id: touchscreen_button_freeze_countdown
+#                    cycle: false
 
 light:
     #adjust dislay brightness

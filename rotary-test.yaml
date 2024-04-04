@@ -54,8 +54,6 @@ external_components:
     components: [ gc9a01, ft3267 ]
     refresh: 0s    
 
-
-
 # include packages to display pages
 packages:
   #always include display first, then add pages. 
