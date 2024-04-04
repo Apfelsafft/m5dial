@@ -1,0 +1,78 @@
+#define defaults that are used if no value is given
+defaults: 
+  my_image: md:lightbulb
+
+#define images and colors 
+image:
+  - file: ${my_image}
+    id: lights_icon_${my_name}
+    resize: 100x100
+
+#define sensors
+#make sure to define
+# sensors that provide actual state (platform home assistant)    
+# 
+# define touchscreen areas
+binary_sensor:
+  - platform: touchscreen
+    id: lights_toggle_touchscreen_button_${my_name}
+    internal: true
+    x_min: 75
+    x_max: 175
+    y_min: 75
+    y_max: 175
+    page_id: ${my_name}
+    on_state: 
+      then:
+        - script.execute:
+            id: lights_toggle_script_${my_name}
+            
+  - platform: homeassistant
+    id: lights_switch_${my_name}
+    entity_id: ${my_entity}
+    on_state:
+      then:
+        - component.update: touchscreen_lcd
+
+#define scrupt on how to react on touches
+script:
+  - id: lights_toggle_script_${my_name}
+    mode: single
+    then:
+      - if:
+          condition:
+            - lambda: |-
+                return id(touchscreen_display_on).state;
+          then:
+            - homeassistant.service:
+                service: light.toggle
+                data:
+                  entity_id: ${my_entity}
+            - logger.log: "Toggle! ${my_name}"
+            - delay: 500ms
+            
+#define display page            
+display:
+  - platform: gc9a01
+    id: !extend touchscreen_lcd
+
+    pages:
+      - id: ${my_name}
+        lambda: |-
+          // Variables
+          float screenheight = it.get_height();
+          float screenwidth = it.get_width();
+          float halfscreenheight = screenheight / 2;
+          float halfscreenwidth = screenwidth / 2;
+          it
+            .image(
+              halfscreenwidth, 
+              halfscreenheight -20,
+              lights_icon_${my_name},
+              ImageAlign::CENTER,
+              (id(lights_switch_${my_name}).state) ? id(my_yellow) : id(my_light_blue));
+
+          it.printf(halfscreenwidth, halfscreenheight +30, id(roboto30), TextAlign::TOP_CENTER, "${my_name}", ${my_name}, id(white));
+          // Display the switch menu
+          //it.filled_circle(halfscreenwidth -6, 225, 3);
+          //it.circle(halfscreenwidth +6, 225, 3);

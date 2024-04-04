@@ -1,0 +1,620 @@
+#define templates
+#define page
+#define script 
+defaults:
+  step: id(climate_step_temperature_${my_name}).state
+  set_time: "2"
+
+script:
+  - id: climate_apply_new_temperature_${my_name}
+    mode: single
+    then:
+      - logger.log: "N E W  T E M P"
+      - delay: 500ms
+      - if:
+          condition:
+            - lambda: |-
+                return id(touchscreen_display_on).state && id(climate_new_temperature_${my_name}).state >= 5;
+          then:
+            - logger.log: "Set Temp"
+            - homeassistant.service:
+                service: climate.set_temperature
+                data:
+                  entity_id: ${my_entity}
+                  temperature: !lambda |-
+                    return id(climate_new_temperature_${my_name}).state;
+  - id: climate_new_temperature_auto_mode_${my_name}
+    mode: single
+    then:
+      - lambda: |-
+          if (id(climate_new_temperature_${my_name}).state <= id(climate_away_temperature_${my_name}).state) {
+            id(climate_away_script_${my_name}).execute();
+          } else if (id(climate_new_temperature_${my_name}).state > id(climate_away_temperature_${my_name}).state && id(climate_new_temperature_${my_name}).state <= id(climate_sleep_temperature_${my_name}).state) {
+            id(climate_sleep_script_${my_name}).execute();
+          } else if (id(climate_new_temperature_${my_name}).state > id(climate_sleep_temperature_${my_name}).state && id(climate_new_temperature_${my_name}).state <= id(climate_home_temperature_${my_name}).state) {
+            id(climate_home_script_${my_name}).execute();
+          } else if (id(climate_new_temperature_${my_name}).state > id(climate_home_temperature_${my_name}).state) {
+            id(climate_comfort_script_${my_name}).execute();
+          }
+        
+  - id: climate_new_temperature_up_script_${my_name}
+    mode: single
+    then:
+      - if:
+          condition:
+            - lambda: |-
+                return id(touchscreen_display_on).state && (strcmp(id(mode).state.c_str(), "climate") == 0);
+          then:
+            - number.set: 
+                id:  set_temp_countdown_${my_name}
+                value: "${set_time}"
+            - lambda: |-
+                return id(climate_new_temperature_${my_name}).publish_state(id(climate_new_temperature_${my_name}).state + id(climate_step_temperature_${my_name}).state);
+            - lambda: |-
+                return id(climate_new_temperature_${my_name}).publish_state((id(climate_new_temperature_${my_name}).state < id(climate_max_temperature_${my_name}).state) ? id(climate_new_temperature_${my_name}).state : id(climate_max_temperature_${my_name}).state);
+            - script.execute:
+                id: climate_new_temperature_auto_mode_${my_name}
+            - component.update: touchscreen_lcd
+
+  - id: climate_new_temperature_down_script_${my_name}
+    mode: single
+    then:
+      - if:
+          condition:
+            - lambda: |-
+                return id(touchscreen_display_on).state && (strcmp(id(mode).state.c_str(), "climate") == 0);
+          then:
+            - number.set: 
+                id:  set_temp_countdown_${my_name}
+                value: "${set_time}"
+            - lambda: |-
+                return id(climate_new_temperature_${my_name}).publish_state(id(climate_new_temperature_${my_name}).state - id(climate_step_temperature_${my_name}).state);
+            - lambda: |-
+                return id(climate_new_temperature_${my_name}).publish_state((id(climate_new_temperature_${my_name}).state > id(climate_min_temperature_${my_name}).state) ? id(climate_new_temperature_${my_name}).state : id(climate_min_temperature_${my_name}).state);
+            - script.execute:
+                id: climate_new_temperature_auto_mode_${my_name}
+            - component.update: touchscreen_lcd
+
+  - id: climate_away_script_${my_name}
+    mode: single
+    then:
+      - if:
+          condition:
+            - lambda: |-
+                return id(touchscreen_display_on).state && (strcmp(id(mode).state.c_str(), "climate") == 0);
+          then:
+            - text_sensor.template.publish:
+                id: climate_mode
+                state: away
+  - id: climate_sleep_script_${my_name}
+    mode: single
+    then:
+      - if:
+          condition:
+            - lambda: |-
+                return id(touchscreen_display_on).state && (strcmp(id(mode).state.c_str(), "climate") == 0);
+          then:
+            - text_sensor.template.publish:
+                id: climate_mode
+                state: sleep
+  - id: climate_home_script_${my_name}
+    mode: single
+    then:
+      - if:
+          condition:
+            - lambda: |-
+                return id(touchscreen_display_on).state && (strcmp(id(mode).state.c_str(), "climate") == 0);
+          then:
+            - text_sensor.template.publish:
+                id: climate_mode
+                state: home
+  - id: climate_comfort_script_${my_name}
+    mode: single
+    then:
+      - if:
+          condition:
+            - lambda: |-
+                return id(touchscreen_display_on).state && (strcmp(id(mode).state.c_str(), "climate") == 0);
+          then:
+            - text_sensor.template.publish:
+                id: climate_mode
+                state: comfort
+            - number.set:
+                id: climate_comfort_countdown_${my_name}
+                value: !lambda |-
+                  return id(climate_comfort_duration_${my_name}).state * 60;
+  - id: climate_runtime_${my_name}
+    mode: single
+    then:
+      - if:
+          condition: 
+            - lambda: |-
+                return !id(touchscreen_display_on).state && id(climate_comfort_countdown_${my_name}).state == 0 && strcmp(id(climate_mode).state.c_str(), "away") != 0;
+          then:
+            - lambda: |- 
+                // Variables          
+                float hours = id(homeassistant_time).now().hour;
+                float minutes = id(homeassistant_time).now().minute;
+                hours = hours + minutes / 60;
+                int day = id(homeassistant_time).now().day_of_week;
+
+                // Change climate mode                
+                if (hours > 6 and hours < 20 and (day == 1 or day == 2 or hours < 8.5 or hours > 15.5)) {
+                  id(climate_mode).publish_state("home");
+                } else {
+                  id(climate_mode).publish_state("sleep");
+                }
+
+time:
+  - platform: homeassistant
+    id: !extend homeassistant_time
+    on_time: 
+      #- seconds: 0
+      #  minutes: /1
+      - seconds: /1
+        then:
+          - if:
+              condition:
+                - number.in_range:
+                    id: set_temp_countdown_${my_name}
+                    above: 1
+              then:
+                - number.decrement:
+                    id: set_temp_countdown_${my_name}
+                    cycle: false
+
+
+display:
+  - platform: gc9a01
+    id: !extend touchscreen_lcd
+
+    pages:
+      - id: ${my_name}
+        lambda: |-
+          // Variables
+          float screenheight = it.get_height();
+          float screenwidth = it.get_width();
+          float halfscreenheight = screenheight / 2;
+          float halfscreenwidth = screenwidth / 2;
+          float currentTemperatureCircleAngle = (360 - id(climate_bottom_gauge_angle).state) * ((id(climate_current_temperature_${my_name}).state - id(climate_min_temperature_${my_name}).state) / (id(climate_max_temperature_${my_name}).state - id(climate_min_temperature_${my_name}).state));
+          float targetTemperatureCircleAngle = (360 - id(climate_bottom_gauge_angle).state) * ((id(climate_new_temperature_${my_name}).state - id(climate_min_temperature_${my_name}).state) / (id(climate_max_temperature_${my_name}).state - id(climate_min_temperature_${my_name}).state));
+          float startAngle = id(climate_bottom_gauge_angle).state / 2;
+          float firstStepAngle = (currentTemperatureCircleAngle < targetTemperatureCircleAngle) ? currentTemperatureCircleAngle : targetTemperatureCircleAngle;
+          float secondStepAngle = (currentTemperatureCircleAngle > targetTemperatureCircleAngle) ? firstStepAngle : targetTemperatureCircleAngle;
+          float endAngle = 360 - id(climate_bottom_gauge_angle).state;
+
+          // Display temperature arc circle
+          it
+            .filled_circle(
+              halfscreenwidth + (halfscreenwidth - 10) * cos((90 + startAngle) * id(pi).state / 180),
+              halfscreenheight + (halfscreenheight - 10) * sin((90 + startAngle) * id(pi).state / 180), 
+              5, 
+              id(dark_orange));
+          it
+            .filled_circle(
+              halfscreenwidth + (halfscreenwidth - 10) * cos((90 + startAngle + endAngle) * id(pi).state / 180),
+              halfscreenheight + (halfscreenheight - 10) * sin((90 + startAngle + endAngle) * id(pi).state / 180), 
+              5, 
+              id(gray));
+
+          for (int i = startAngle; i <= startAngle + firstStepAngle; i++) {
+            it
+              .filled_triangle(
+                halfscreenwidth + (halfscreenwidth - 15) * cos((90 + i) * id(pi).state / 180),
+                halfscreenheight + (halfscreenheight - 15) * sin((90 + i) * id(pi).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 5) * cos((90 + i) * id(pi).state / 180), 
+                halfscreenheight + (halfscreenheight - 5) * sin((90 + i) * id(pi).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 5) * cos((90 + (i + 1)) * id(pi).state / 180), 
+                halfscreenheight + (halfscreenheight - 5) * sin((90 + (i + 1)) * id(pi).state / 180), 
+                id(dark_orange));
+            it
+              .filled_triangle(
+                halfscreenwidth + (halfscreenwidth - 15) * cos((90 + i) * id(pi).state / 180),
+                halfscreenheight + (halfscreenheight - 15) * sin((90 + i) * id(pi).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 5) * cos((90 + (i + 1)) * id(pi).state / 180), 
+                halfscreenheight + (halfscreenheight - 5) * sin((90 + (i + 1)) * id(pi).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 15) * cos((90 + (i + 1)) * id(pi).state / 180),
+                halfscreenheight + (halfscreenheight - 15) * sin((90 + (i + 1)) * id(pi).state / 180), 
+                id(dark_orange));
+          }
+          for (int i = startAngle + firstStepAngle; i <= startAngle + secondStepAngle; i++) {
+            it
+              .filled_triangle(
+                halfscreenwidth + (halfscreenwidth - 15) * cos((90 + i) * id(pi).state / 180),
+                halfscreenheight + (halfscreenheight - 15) * sin((90 + i) * id(pi).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 5) * cos((90 + i) * id(pi).state / 180), 
+                halfscreenheight + (halfscreenheight - 5) * sin((90 + i) * id(pi).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 5) * cos((90 + (i + 1)) * id(pi).state / 180), 
+                halfscreenheight + (halfscreenheight - 5) * sin((90 + (i + 1)) * id(pi).state / 180), 
+                id(orange));
+            it
+              .filled_triangle(
+                halfscreenwidth + (halfscreenwidth - 15) * cos((90 + i) * id(pi).state / 180),
+                halfscreenheight + (halfscreenheight - 15) * sin((90 + i) * id(pi).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 5) * cos((90 + (i + 1)) * id(pi).state / 180), 
+                halfscreenheight + (halfscreenheight - 5) * sin((90 + (i + 1)) * id(pi).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 15) * cos((90 + (i + 1)) * id(pi).state / 180),
+                halfscreenheight + (halfscreenheight - 15) * sin((90 + (i + 1)) * id(pi).state / 180), 
+                id(orange));
+          }
+          for (int i = startAngle + secondStepAngle; i <= startAngle + endAngle; i++) {
+            it
+              .filled_triangle(
+                halfscreenwidth + (halfscreenwidth - 15) * cos((90 + i) * id(pi).state / 180),
+                halfscreenheight + (halfscreenheight - 15) * sin((90 + i) * id(pi).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 5) * cos((90 + i) * id(pi).state / 180), 
+                halfscreenheight + (halfscreenheight - 5) * sin((90 + i) * id(pi).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 5) * cos((90 + (i + 1)) * id(pi).state / 180), 
+                halfscreenheight + (halfscreenheight - 5) * sin((90 + (i + 1)) * id(pi).state / 180), 
+                id(gray));
+            it
+              .filled_triangle(
+                halfscreenwidth + (halfscreenwidth - 15) * cos((90 + i) * id(pi).state / 180),
+                halfscreenheight + (halfscreenheight - 15) * sin((90 + i) * id(pi).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 5) * cos((90 + (i + 1)) * id(pi).state / 180), 
+                halfscreenheight + (halfscreenheight - 5) * sin((90 + (i + 1)) * id(pi).state / 180), 
+                halfscreenwidth + (halfscreenwidth - 15) * cos((90 + (i + 1)) * id(pi).state / 180),
+                halfscreenheight + (halfscreenheight - 15) * sin((90 + (i + 1)) * id(pi).state / 180), 
+                id(gray));
+          }
+
+          // Current temperature round
+          it
+            .filled_circle(
+              halfscreenwidth + (halfscreenwidth - 10) * cos((90 + startAngle + currentTemperatureCircleAngle) * id(pi).state / 180),
+              halfscreenheight + (halfscreenheight - 10) * sin((90 + startAngle + currentTemperatureCircleAngle) * id(pi).state / 180), 
+              2, 
+              id(white));
+
+          // Start of the second step
+          if (firstStepAngle < secondStepAngle) {
+            it
+              .filled_circle(
+                halfscreenwidth + (halfscreenwidth - 10) * cos((90 + startAngle + firstStepAngle) * id(pi).state / 180),
+                halfscreenheight + (halfscreenheight - 10) * sin((90 + startAngle + firstStepAngle) * id(pi).state / 180), 
+                5, 
+                id(orange));
+            it
+              .filled_circle(
+                halfscreenwidth + (halfscreenwidth - 10) * cos((90 + startAngle + firstStepAngle) * id(pi).state / 180),
+                halfscreenheight + (halfscreenheight - 10) * sin((90 + startAngle + firstStepAngle) * id(pi).state / 180), 
+                2, 
+                id(dark_orange));
+          } 
+
+          // Target temperature round
+          it
+            .filled_circle(
+              halfscreenwidth + (halfscreenwidth - 10) * cos((90 + startAngle + targetTemperatureCircleAngle) * id(pi).state / 180),
+              halfscreenheight + (halfscreenheight - 10) * sin((90 + startAngle + targetTemperatureCircleAngle) * id(pi).state / 180), 
+              7, 
+              id(orange));
+          it
+            .filled_circle(
+              halfscreenwidth + (halfscreenwidth - 10) * cos((90 + startAngle + targetTemperatureCircleAngle) * id(pi).state / 180),
+              halfscreenheight + (halfscreenheight - 10) * sin((90 + startAngle + targetTemperatureCircleAngle) * id(pi).state / 180), 
+              5, 
+              id(white));
+
+          // Dislay icons
+          it
+            .image(
+              halfscreenwidth + halfscreenwidth * id(climate_icon_distance_radius).state * cos((-90 - 1.5 * id(climate_icon_separation_angle).state) * id(pi).state / 180), 
+              halfscreenheight + halfscreenheight * id(climate_icon_distance_radius).state * sin((-90 - 1.5 * id(climate_icon_separation_angle).state) *id(pi).state / 180), 
+              climate_away_mode_icon, 
+              ImageAlign::CENTER,
+              (strcmp(id(climate_mode).state.c_str(), "away") == 0) ? id(activated_button_color) : id(desactivated_button_color));
+          it
+            .image(
+              halfscreenwidth + halfscreenwidth * id(climate_icon_distance_radius).state * cos((-90 - 0.5 * id(climate_icon_separation_angle).state) * id(pi).state / 180), 
+              halfscreenheight + halfscreenheight * id(climate_icon_distance_radius).state * sin((-90 - 0.5 * id(climate_icon_separation_angle).state) *id(pi).state / 180), 
+              climate_sleep_mode_icon, 
+              ImageAlign::CENTER,
+              (strcmp(id(climate_mode).state.c_str(), "sleep") == 0) ? id(activated_button_color) : id(desactivated_button_color));
+          it
+            .image(
+              halfscreenwidth + halfscreenwidth * id(climate_icon_distance_radius).state * cos((-90 + 0.5 * id(climate_icon_separation_angle).state) * id(pi).state / 180), 
+              halfscreenheight + halfscreenheight * id(climate_icon_distance_radius).state * sin((-90 + 0.5 * id(climate_icon_separation_angle).state) *id(pi).state / 180), 
+              climate_home_mode_icon, 
+              ImageAlign::CENTER,
+              (strcmp(id(climate_mode).state.c_str(), "home") == 0) ? id(activated_button_color) : id(desactivated_button_color));
+          it
+            .image(
+              halfscreenwidth + halfscreenwidth * id(climate_icon_distance_radius).state * cos((-90 + 1.5 * id(climate_icon_separation_angle).state) * id(pi).state / 180), 
+              halfscreenheight + halfscreenheight * id(climate_icon_distance_radius).state * sin((-90 + 1.5 * id(climate_icon_separation_angle).state)*id(pi).state / 180), 
+              climate_comfort_mode_icon, 
+              ImageAlign::CENTER,
+              (strcmp(id(climate_mode).state.c_str(), "comfort") == 0) ? id(activated_button_color) : id(desactivated_button_color));
+ 
+          // Display temperature
+          it.printf(halfscreenwidth, halfscreenheight - id(climate_temperature_distance_from_center).state, id(roboto50), TextAlign::TOP_CENTER, "%2.1f", id(climate_new_temperature_${my_name}).state, id(white));
+          it.printf(halfscreenwidth, halfscreenheight - id(climate_temperature_distance_from_center).state + 55, id(roboto30), TextAlign::TOP_CENTER, "%2.1f", id(climate_current_temperature_${my_name}).state, id(white));
+          it
+            .image(
+              halfscreenwidth - 50, 
+              halfscreenheight - id(climate_temperature_distance_from_center).state + 62, 
+              climate_thermometer_icon, 
+              ImageAlign::TOP_LEFT,
+              id(white));
+          it
+            .image(
+              halfscreenwidth + 30, 
+              halfscreenheight - id(climate_temperature_distance_from_center).state + 62, 
+              climate_celcius_icon, 
+              ImageAlign::TOP_LEFT,
+              id(white));
+          //it
+          //  .image(
+          //    halfscreenwidth, 
+          //    halfscreenheight - id(climate_temperature_distance_from_center).state + 112, 
+          //    climate_fire_icon, 
+          //    ImageAlign::CENTER,
+          //    (id(climate_new_temperature_${my_name}).state > id(climate_current_temperature_${my_name}).state) ? id(red) : id(gray));
+
+          it.printf(halfscreenwidth, halfscreenheight +50, id(roboto20), TextAlign::TOP_CENTER, "${my_name}", ${my_name}, id(white));
+          // Display the swith menu
+          //it.circle(halfscreenwidth - 6, 225, 3);
+          //it.filled_circle(halfscreenwidth + 6, 225, 3);
+          
+          
+          
+binary_sensor:
+  - platform: touchscreen
+    id: climate_away_touchscreen_button_${my_name}
+    internal: true
+    x_min: 31
+    x_max: 71
+    y_min: 95
+    y_max: 135
+    page_id: ${my_name}
+    on_state: 
+      then:
+        - script.execute:
+            id: climate_away_script_${my_name}
+        - sensor.template.publish:
+            id: climate_new_temperature_${my_name}
+            state: !lambda |-
+              return id(climate_away_temperature_${my_name}).state;
+        - number.set: 
+            id:  set_temp_countdown_${my_name}
+            value: "${set_time}"
+
+  - platform: touchscreen
+    id: climate_sleep_touchscreen_button_${my_name}
+    internal: true
+    x_min: 70
+    x_max: 110
+    y_min: 38
+    y_max: 78
+    page_id: ${my_name}
+    on_state: 
+      then:
+        - script.execute:
+            id: climate_sleep_script_${my_name}
+        - sensor.template.publish:
+            id: climate_new_temperature_${my_name}
+            state: !lambda |-
+              return id(climate_sleep_temperature_${my_name}).state;
+        - number.set: 
+            id:  set_temp_countdown_${my_name}
+            value: "${set_time}"
+
+  - platform: touchscreen
+    id: climate_home_touchscreen_button_${my_name}
+    internal: true
+    x_min: 140
+    x_max: 180
+    y_min: 38
+    y_max: 78
+    page_id: ${my_name}
+    on_state: 
+      then:
+        - script.execute:
+            id: climate_home_script_${my_name}
+        - sensor.template.publish:
+            id: climate_new_temperature_${my_name}
+            state: !lambda |-
+              return id(climate_home_temperature_${my_name}).state;
+        - number.set: 
+            id:  set_temp_countdown_${my_name}
+            value: "${set_time}"
+
+  - platform: touchscreen
+    id: climate_comfort_touchscreen_button_${my_name}
+    internal: true
+    x_min: 179
+    x_max: 219
+    y_min: 95
+    y_max: 135
+    page_id: ${my_name}
+    on_state: 
+      then:
+        - script.execute:
+            id: climate_comfort_script_${my_name}
+        - sensor.template.publish:
+            id: climate_new_temperature_${my_name}
+            state: !lambda |-
+              return id(climate_comfort_temperature_${my_name}).state;
+        - number.set: 
+            id:  set_temp_countdown_${my_name}
+            value: "${set_time}"
+
+sensor:
+  - platform: template
+    id: climate_new_temperature_${my_name}
+    name: Nouvelle temperature_${my_name}
+
+  - platform: homeassistant
+    id: climate_target_temperature_${my_name}
+    entity_id: $my_entity
+    attribute: temperature
+    on_value:
+      then:
+        - lambda: !lambda |-
+              id(climate_new_temperature_${my_name}).publish_state(id(climate_target_temperature_${my_name}).state);
+        - component.update: touchscreen_lcd
+
+  - platform: homeassistant
+    id: climate_current_temperature_${my_name}
+    entity_id: $my_entity
+    attribute: current_temperature
+    on_value:
+      then:
+        - component.update: touchscreen_lcd
+
+  - platform: homeassistant
+    id: climate_min_temperature_${my_name}
+    entity_id: $my_entity
+    attribute: min_temp
+    on_value:
+      then:
+        - component.update: touchscreen_lcd
+
+  - platform: homeassistant
+    id: climate_max_temperature_${my_name}
+    entity_id: $my_entity
+    attribute: max_temp
+    on_value:
+      then:
+        - component.update: touchscreen_lcd
+
+  - platform: homeassistant
+    id: climate_step_temperature_${my_name}
+    entity_id: $my_entity
+    attribute: target_temp_step
+    on_value:
+      then:
+        - component.update: touchscreen_lcd
+
+  - platform: rotary_encoder
+    id: !extend touchscreen_rotary
+    on_clockwise: 
+      then:
+          - if:
+              condition:
+                display.is_displaying_page: ${my_name}
+              then:
+                - script.execute:
+                    id: climate_new_temperature_up_script_${my_name}
+    on_anticlockwise: 
+      then:
+          - if:
+              condition:
+                display.is_displaying_page: ${my_name}
+              then:
+                - script.execute:
+                    id: climate_new_temperature_down_script_${my_name}   
+        
+button:
+  - platform: template
+    id: climate_away_button_${my_name}
+    name: Mode Absent_${my_name}
+    on_press:
+      then:
+        - script.execute:
+            id: climate_away_script_${my_name}
+
+  - platform: template
+    id: climate_sleep_button_${my_name}
+    name: Mode Couché_${my_name}
+    on_press:
+      then:
+        - script.execute:
+            id: climate_sleep_script_${my_name}
+
+  - platform: template
+    id: climate_home_button_${my_name}
+    name: Mode Maison_${my_name}
+    on_press:
+      then:
+        - script.execute:
+            id: climate_home_script_${my_name}
+
+  - platform: template
+    id: climate_comfort_button_${my_name}
+    name: Mode Boost_${my_name}
+    on_press:
+      then:
+        - script.execute:
+            id: climate_comfort_script_${my_name}
+
+
+number:
+  # Public
+  - platform: template
+    id: climate_away_temperature_${my_name}
+    name: Température du mode "Absent"
+    icon: mdi:thermometer-low
+    optimistic: true
+    min_value: 10
+    max_value: 22
+    step: 1
+    initial_value: 5
+
+  - platform: template
+    id: climate_sleep_temperature_${my_name}
+    name: Température du mode "Couché"
+    icon: mdi:thermometer
+    optimistic: true
+    min_value: 10
+    max_value: 22
+    step: 1
+    initial_value: 15
+
+  - platform: template
+    id: climate_home_temperature_${my_name}
+    name: Température du mode "Maison"
+    icon: mdi:thermometer
+    optimistic: true
+    min_value: 10
+    max_value: 22
+    step: 1
+    initial_value: 19.5
+
+  - platform: template
+    id: climate_comfort_duration_${my_name}
+    name: Durée du mode "Boost"
+    icon: mdi:wrench-clock
+    optimistic: true
+    min_value: 30
+    max_value: 120
+    step: 5
+    initial_value: 60
+
+  - platform: template
+    id: climate_comfort_temperature_${my_name}
+    name: Température du mode "Boost"
+    icon: mdi:thermometer-high
+    optimistic: true
+    min_value: 10
+    max_value: 22
+    step: 1
+    initial_value: 22
+    
+  - platform: template
+    id: climate_comfort_countdown_${my_name}
+    internal: true
+    optimistic: true
+    min_value: 0
+    max_value: 10000
+    step: 1
+    initial_value: 1
+
+  - platform: template
+    id: set_temp_countdown_${my_name}
+    internal: true
+    optimistic: true
+    min_value: 0
+    max_value: 60
+    step: 1
+    initial_value: 1
+    on_value_range:
+      #- above: 1
+      #  then: 
+      #    - script.execute:
+      #        id: touchscreen_display_on_script
+      - below: 0
+        then: 
+          - logger.log: "Temp cntdwn done"
+          - script.execute:
+              id: climate_apply_new_temperature_${my_name}  

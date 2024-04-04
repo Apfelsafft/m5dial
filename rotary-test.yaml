@@ -1,0 +1,430 @@
+# yaml was mainly copied from Squall290586 from here
+# https://community.home-assistant.io/t/m5stack-dial-esp32-s3-smart-rotary-knob/623518/119 
+# and then adapted to my needs (substitution, colors, functionality) 
+
+esphome:
+  name: rotary-test
+  friendly_name: rotary_test
+  
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+   level: DEBUG
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "OPSqVGQ6XPVEkarePrt8IFRLBrCf/zbPMWOePH9AKps="
+
+ota:
+  password: "2abedc7a9138fab45d13bf7da07af14c"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Rotary-Test Fallback Hotspot"
+    password: "zAbXK6NqAGhw"
+
+captive_portal:
+
+external_components:
+  - source: github://dgaust/esphome@gc9a01
+    components: [ gc9a01, ft3267 ]
+    refresh: 0s    
+
+
+#substitutions:
+#  climate_id : "climate.heizung_truma_room"
+#  light_id : "light.wozi_1"
+
+
+packages:
+  #always include display first, then add pages. 
+  display: !include display.yaml
+  url: https://github.com/Apfelsafft/Yaml-files/tree/main/ESPhome/M5Dial
+  climate_1: !include 
+    file: page_climate.yaml
+    vars:
+      my_name: "climate"
+      my_entity: "climate.heizung_truma_water"
+      step: "40"
+
+  #pages are cycled in order they are defined here
+  wozi_light4: !include
+    url: https://github.com/Apfelsafft/Yaml-files/tree/main/ESPhome/M5Dial
+    file: page_light.yaml   
+    vars:
+      my_name: "wozi4"
+      my_entity: "light.wozi_4"
+      my_image: "mdi:lightbulb"
+
+  climate_2: !include 
+    url: https://github.com/Apfelsafft/Yaml-files/tree/main/ESPhome/M5Dial
+    file: page_climate.yaml    
+    vars:
+      my_name: "climate2"
+      my_entity: "climate.heizung_truma_room"
+  
+  wozi_light1: !include
+    url: https://github.com/Apfelsafft/Yaml-files/tree/main/ESPhome/M5Dial
+    file: page_light.yaml
+    vars:
+      my_name: "wozi1"
+      my_entity: "light.wozi_1"
+      my_image: "mdi:fan"
+
+script:
+  - id: touchscreen_display_on_script
+    mode: single
+    then:
+      #- lambda: |-
+      #    id(mode).publish_state("lights");
+      - light.turn_on:
+          id: touchscreen_back_lighting
+          brightness: !lambda |-
+            return id(touchscreen_display_brightness).state / 100;
+      - sensor.rotary_encoder.set_value:
+          id: touchscreen_rotary
+          value: 0
+      #- sensor.template.publish:
+      #    id: climate_new_temperature
+      #    state: !lambda |-
+      #      return id(climate_target_temperature).state;
+      - delay: 500ms
+      - lambda: |-
+          id(touchscreen_display_on).publish_state(true);
+
+  - id: touchscreen_display_off_script
+    mode: single
+    then:
+      - light.turn_off:
+          id: touchscreen_back_lighting
+      - lambda: |-
+          id(touchscreen_display_on).publish_state(false);
+      #- script.execute:
+      #    id: climate_apply_new_temperature
+
+  - id: touchscreen_display_set_countdown  
+    mode: single
+    then:
+      - number.set:
+          id: touchscreen_display_countdown
+          value: !lambda |-
+            return id(touchscreen_display_delay).state;
+            
+  - id: touchscreen_display_change_mode
+    mode: single
+    then:
+      - if:
+          condition:
+            - lambda: |-
+                return id(touchscreen_display_on).state && id(touchscreen_button_freeze_countdown).state == 0;
+          then:
+            - lambda: |-
+                if (strcmp(id(mode).state.c_str(), "lights") == 0) {
+                  id(mode).publish_state("climate");
+                } else if (strcmp(id(mode).state.c_str(), "climate") == 0) {
+                  id(mode).publish_state("lights");
+                } else {
+                  id(mode).publish_state("lights");
+                }
+  - id: change_display_page
+    mode: single
+    then:
+      - display.page.show_next: touchscreen_lcd
+      - component.update: touchscreen_lcd
+
+
+font:
+  - file: "gfonts://Roboto"
+    id: roboto20
+    size: 20
+
+  - file: "gfonts://Roboto"
+    id: roboto30
+    size: 30    
+
+  - file: "gfonts://Roboto"
+    id: roboto40
+    size: 40
+
+  - file: "gfonts://Roboto"
+    id: roboto50
+    size: 50
+
+color:
+  - id: my_red
+    red: 100%
+    green: 3%
+    blue: 5%
+  - id: my_green
+    hex: 4CBB17
+  - id: my_blue
+    red: 3%
+    green: 5%
+    blue: 100%
+  - id: my_yellow
+    hex: FFFF00 
+  - id: my_light_blue
+    hex: 145DA0
+  - id: my_light_red
+    hex: fc6d6d
+  - id: my_light_orange
+    hex: FD7F20
+  - id: my_light_yellow
+    hex: B58B00
+    #
+  - id: activated_button_color
+    hex: 145DA0
+  - id: desactivated_button_color
+    hex: AAAAAA
+  - id: red
+    hex: FF2800
+  - id: white
+    hex: FFFFFF
+  - id: gray
+    hex: 7A7070
+  - id: orange
+    hex: FA6607
+  - id: dark_orange
+    hex: FF8C00
+
+image:
+  #- file: "pics/bulb.jpg"
+  #  id: my_bulb
+  #  resize: 100x100
+  #- file: mdi:lightbulb
+  #  id: lights_icon
+  #  resize: 100x100
+  - file: mdi:snowflake
+    id: climate_away_mode_icon
+    resize: 40x40
+  - file: mdi:sleep
+    id: climate_sleep_mode_icon
+    resize: 40x40
+  - file: mdi:home
+    id: climate_home_mode_icon
+    resize: 40x40    
+  - file: mdi:heat-wave
+    id: climate_comfort_mode_icon
+    resize: 40x40
+  - file: mdi:thermometer
+    id: climate_thermometer_icon
+    resize: 20x20
+  - file: mdi:temperature-celsius
+    id: climate_celcius_icon
+    resize: 20x20 
+  - file: mdi:fire
+    id: climate_fire_icon
+    resize: 40x40 
+
+#############
+# Variables #
+#############
+
+number:
+  # Public
+
+  - platform: template
+    id: touchscreen_display_delay
+    name: Durée rétro-éclairage
+    icon: mdi:wrench-clock
+    optimistic: true
+    min_value: 0
+    max_value: 60
+    step: 5
+    initial_value: 10
+
+  - platform: template
+    id: touchscreen_display_brightness
+    name: Luminosité
+    icon: mdi:brightness-6
+    optimistic: true
+    min_value: 0
+    max_value: 100
+    step: 5
+    initial_value: 50
+
+
+  # Private
+
+  - platform: template
+    id: touchscreen_display_countdown
+    internal: true
+    optimistic: true
+    min_value: 0
+    max_value: 60
+    step: 1
+    initial_value: 10
+    on_value_range:
+      - above: 1
+        then: 
+          - script.execute:
+              id: touchscreen_display_on_script
+      - below: 0
+        then: 
+          - script.execute:
+              id: touchscreen_display_off_script
+
+  - platform: template
+    id: touchscreen_button_freeze_countdown
+    internal: true
+    optimistic: true
+    min_value: 0
+    max_value: 2
+    step: 1
+    initial_value: 1
+
+  - platform: template
+    id: pi
+    internal: true
+    optimistic: true
+    min_value: 3.14159265359
+    max_value: 3.14159265360
+    step: 0.00000000001
+    initial_value: 3.14159265359
+
+  - platform: template
+    id: climate_icon_distance_radius
+    internal: true
+    optimistic: true
+    min_value: 0
+    max_value: 1
+    step: 0.01
+    initial_value: 0.6
+
+  - platform: template
+    id: climate_icon_separation_angle
+    internal: true
+    optimistic: true
+    min_value: 30
+    max_value: 60
+    step: 1
+    initial_value: 55
+
+  - platform: template
+    id: climate_bottom_gauge_angle
+    internal: true
+    optimistic: true
+    min_value: 30
+    max_value: 180
+    step: 1
+    initial_value: 70
+
+  - platform: template
+    id: climate_temperature_distance_from_center
+    internal: true
+    optimistic: true
+    min_value: 0
+    max_value: 80
+    step: 1
+    #lower value more to the bottom, higher value more to the top
+    initial_value: 40
+
+  - platform: template
+    id: page_walker
+    internal: true
+    optimistic: true
+    min_value: 1
+    max_value: 10000
+    step: 1
+    initial_value: 1
+
+############
+# Settings #
+############
+
+#external_components:
+#  - source: github://dgaust/esphome@gc9a01
+#    components: 
+#      - gc9a01
+#      - ft3267
+#    refresh: 0s
+#  - source: "github://pr#6096"
+#    components:
+#      - display
+#    refresh: 0s
+
+spi:
+  mosi_pin: GPIO5
+  clk_pin: GPIO6
+
+i2c:
+  - id: bus_internal
+    sda: GPIO11
+    scl: GPIO12
+  - id: bus_porta
+    sda: 13
+    scl: 15
+
+
+
+touchscreen:
+  platform: ft3267
+  i2c_id:  bus_internal
+  on_update:
+    - then:
+      - script.execute:
+          id: touchscreen_display_set_countdown
+
+binary_sensor:
+  - platform: gpio
+    pin: GPIO42
+    name: Bouton
+    internal: true
+    filters: 
+      - invert: 
+    on_state: 
+      - then:
+        - script.execute:
+            id: touchscreen_display_set_countdown
+    on_press: 
+      - then:
+        - script.execute:
+            id: touchscreen_display_change_mode
+
+  - platform: template
+    id: touchscreen_display_on
+    internal: true
+        
+        
+
+text_sensor:
+  - platform: template
+    id: climate_mode
+    name: Mode du thermostat
+    on_value:
+      then:
+        - component.update: touchscreen_lcd
+
+  - platform: template
+    id: mode
+    name: Mode
+    on_value:
+      then:
+        - script.execute:
+            id: change_display_page
+
+
+light:
+  - platform: monochromatic
+    id: touchscreen_back_lighting
+    name: Retro eclairage
+    internal: true
+    output: touchscreen_back_lighting_output
+    default_transition_length: 500ms
+
+output:
+  - id: touchscreen_back_lighting_output
+    platform: ledc
+    pin: GPIO09
+    max_power: 1
+    min_power: 0
