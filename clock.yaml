@@ -1,6 +1,4 @@
 #define defaults that are used if no value is given
-defaults: 
-  my_image: md:clock
 
 #define display page            
 display:
@@ -8,11 +6,12 @@ display:
     id: !extend touchscreen_lcd
 
     pages:
-      - id: clock
+      - id: clockpage
         lambda: |-
           // Variables
           float screenheight = it.get_height();
           float screenwidth = it.get_width();
           float halfscreenheight = screenheight / 2;
           float halfscreenwidth = screenwidth / 2;
-          it.printf(halfscreenwidth, halfscreenheight +30, id(roboto30), TextAlign::TOP_CENTER, "%s", it.strftime(0, 0, id(font), "%Y-%m-%d %H:%M", id(time).now()), id(white));
+          it.strftime(halfscreenwidth, halfscreenheight +30, id(roboto30), TextAlign::TOP_CENTER,  "%Y-%m-%d %H:%M", id(time).now()), id(white));
+          it.printf(halfscreenwidth, halfscreenheight +30, id(roboto30), TextAlign::TOP_CENTER,  "%Y-%m-%d %H:%M", id(time).now()), id(white));
