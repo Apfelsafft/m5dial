@@ -33,6 +33,15 @@ sensor:
                 - script.execute:
                     id: light_new_brightness_down_script_${my_name}   
 
+  - platform: homeassistant
+    id: light_brightness_${my_name}
+    entity_id: $my_entity
+    attribute: brightness_pct
+    on_state:
+      then:
+        - lambda: !lambda |-
+              id(light_new_brightness_${my_name}).publish_state(id(light_brightness_${my_name}).state);
+        - component.update: touchscreen_lcd
 
 # define touchscreen areas
 binary_sensor:
