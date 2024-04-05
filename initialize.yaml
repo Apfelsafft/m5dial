@@ -152,7 +152,7 @@ time:
   - platform: homeassistant
     id: homeassistant_time
     on_time: 
-      - seconds: /1
+      - seconds: '*'
         then:
           - if:
               condition:
