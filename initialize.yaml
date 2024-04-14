@@ -36,6 +36,10 @@ binary_sensor:
       - then:
         - script.execute:
             id: change_display_page
+    on_click:
+      min_length: 200ms
+      then:
+        - display.page.show: clockpage          
 
   - platform: template
     id: touchscreen_display_on
