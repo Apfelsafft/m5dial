@@ -160,7 +160,6 @@ time:
                     id: touchscreen_display_countdown
                     above: 1
               then:
-                - lohher.log "D E C"
                 - number.decrement:
                     id: touchscreen_display_countdown
                     cycle: false
