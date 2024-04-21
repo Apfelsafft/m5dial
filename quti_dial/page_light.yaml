@@ -1,4 +1,5 @@
 #define defaults that are used if no value is given
+
 defaults: 
   my_image: md:lightbulb
 
@@ -36,9 +37,13 @@ sensor:
   - platform: homeassistant
     id: light_brightness_${my_name}
     entity_id: $my_entity
-    attribute: brightness_pct
-    on_state:
+    attribute: brightness
+    filters:
+      - multiply: 0.3937
+
+    on_value:
       then:
+        - logger.log: "new brightness from HA"
         - lambda: !lambda |-
               id(light_new_brightness_${my_name}).publish_state(id(light_brightness_${my_name}).state);
         - component.update: touchscreen_lcd
@@ -64,6 +69,8 @@ binary_sensor:
     on_state:
       then:
         - component.update: touchscreen_lcd
+
+
 
 number:
   # Public
@@ -178,7 +185,8 @@ display:
               (id(lights_switch_${my_name}).state) ? id(my_yellow) : id(my_light_blue));
 
           it.printf(halfscreenwidth, halfscreenheight +30, id(roboto30), TextAlign::TOP_CENTER, "${my_name}", ${my_name}, id(white));
-          it.printf(halfscreenwidth, halfscreenheight +65, id(roboto30), TextAlign::TOP_CENTER, "%2.0f", id(light_new_brightness_${my_name}).state, id(white));
+          it.printf(halfscreenwidth, halfscreenheight +65, id(roboto30), TextAlign::TOP_CENTER, "%2.0f", id(light_new_brightness_${my_name}).state > 0 ? id(light_new_brightness_${my_name}).state : 0 , id(white));
+          //it.printf(halfscreenwidth, halfscreenheight +65, id(roboto30), TextAlign::TOP_CENTER,  "", id(homeassistant_time).now(), id(white));  
           // Display the switch menu
           //it.filled_circle(halfscreenwidth -6, 225, 3);
           //it.circle(halfscreenwidth +6, 225, 3);

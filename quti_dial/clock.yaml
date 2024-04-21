@@ -1,0 +1,29 @@
+#define defaults that are used if no value is given
+
+#define display page            
+time:
+  - platform: sntp
+    id: !extend homeassistant_time
+    on_time:
+      # Every 5 seconds
+      - seconds: '*'
+        then:
+          - component.update: touchscreen_lcd
+          #- script.execute:
+          #    id: touchscreen_display_set_countdown          
+
+#define display page            
+display:
+  - platform: gc9a01
+    id: !extend touchscreen_lcd
+
+    pages:
+      - id: clockpage
+        lambda: |-
+          // Variables
+          float screenheight = it.get_height();
+          float screenwidth = it.get_width();
+          float halfscreenheight = screenheight / 2;
+          float halfscreenwidth = screenwidth / 2;      
+          it.printf(halfscreenwidth, halfscreenheight -30, id(roboto50), TextAlign::TOP_CENTER, "%02d:%02d:%02d",  id(homeassistant_time).now().hour, id(homeassistant_time).now().minute ,id(homeassistant_time).now().second, id(white));    
+          

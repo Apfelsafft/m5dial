@@ -32,14 +32,21 @@ binary_sensor:
       - then:
         - script.execute:
             id: touchscreen_display_set_countdown
-    on_press: 
-      - then:
+    #on_press: 
+    #  - then:
+    #    - script.execute:
+    #        id: change_display_page
+    on_click:
+      - min_length: 1ms
+        max_length: 499ms
+        then: 
         - script.execute:
             id: change_display_page
-    on_click:
-      min_length: 200ms
-      then:
-        - display.page.show: clockpage          
+
+      - min_length: 500ms
+        max_length: 2s          
+        then:
+          - display.page.show: clockpage          
 
   - platform: template
     id: touchscreen_display_on
@@ -72,6 +79,7 @@ number:
     #controls display on/off 
   - platform: template
     id: touchscreen_display_countdown
+    entity_category: 'CONFIG'
     internal: true
     optimistic: true
     min_value: 0
@@ -91,6 +99,7 @@ number:
     #set display on time
   - platform: template
     id: touchscreen_display_delay
+    entity_category: 'CONFIG'
     name: Display-on time
     icon: mdi:wrench-clock
     optimistic: true
@@ -102,6 +111,7 @@ number:
     #set display backlight brightness
   - platform: template
     id: touchscreen_display_brightness
+    entity_category: 'CONFIG'
     name: Helligkeit Display
     icon: mdi:brightness-6
     optimistic: true
