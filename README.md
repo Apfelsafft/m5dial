@@ -17,7 +17,7 @@ Then you can add multiple pages in your preferred order which can switched by us
 Whenever you include a page you can override certain configuration items by using vars:.
 Please always state your entity id and choose a unique name variable for each page.
 
-To save power, the backlight will be turned off after some time. Configurable in <>
+To save power, the backlight will be turned off after some time. Configurable in entity `touchscreen_display_countdown`
 
 At this moment in time there are the following pages available
 # clock 
@@ -28,7 +28,7 @@ Enables you to control a light entity. Use the dial to control the brightness an
 
 # climate
 Enables you to control a climate entity. Use the dial to set the desired temperature. The new set temperature will be sent to HA after a few seconds to prevent setting the temp after each step.
-You have the possibility to use 4 preset buttons e.g. for "not at home", "sleep", "standard" and "boost".
+You have the possibility to use 4 preset buttons e.g. for "away", "sleep", "home" and "comfort".
 
 # media player
 Enables you to control your media player entity. Use the dial to set the volume and the touchscree to toggle play or pause.
@@ -40,6 +40,7 @@ There are still many "bugs" that I need to eliminiate. Please be patient ;-)
 - sometimes the display stays dark if the dial is powered on. It seems that you need to touch/dial/click to start the display timeout counter. After it reaches 0 and you touch it again, the display turns on.
 - would also like to have the nice visual circle like in climate to show brightness or volume in other pages. But I didn't finde a way to make it a nice package to be reused.
 - in my configuration the new brightness is not set correctly as it is updated from HA while trying to set a new value. But I think it is related to my personal setup using ZHA and deconz in parallel.
+- issues using climate page for my Truma water heater as it uses only 3 set points (off, 40°9 or 80°)
 - poorly documented the files and their functionality
 
 Please use issues or requests for further updates.
