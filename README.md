@@ -43,6 +43,6 @@ There are still many "bugs" that I need to eliminiate. Please be patient ;-)
 - issues using climate page for my Truma water heater as it uses only 3 set points (off, 40°9 or 80°)
 - poorly documented the files and their functionality
 
-Please use issues or requests for further updates.
+Please use issues for problems or requests for further updates.
 Or donate by buying me a coffee via [Paypal](https://www.paypal.com/donate/?hosted_button_id=9Y7YUPX9BAYA8).
 
