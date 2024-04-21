@@ -3,7 +3,7 @@
 ESPhome YAML files to use your M5 dial device.
 
 I was really really happy when SmartWomo group User "Markus Gebert Deutschlad" sponsored me a M5 dial that I can tinker with.
-It is meant to use this device in my camper to control all the smart things that I built in. Most with help of the great Womolin group users. It will control all the lights (using my self-developed smart 8channel or 2channel control module) and my Truma Combi heater. All using ESPhome that will connect to my Home Assistant (HA) instance running in my camper.
+It is meant to use this device in my camper to control all the smart things that I built in. Most with help of the great Womolin group users. It will control all the lights (using my self-developed smart [8channel](https://github.com/Apfelsafft/WomoLight) or 2channel control module) and my Truma Combi heater. All using ESPhome that will connect to my Home Assistant (HA) instance running in my camper.
 
 Based on work of Squall290586 & dgaust and heavily modified to suit my needs, like refactoring to use packages.
 Please see this thread, where I took copied the initial yamls from - with pride ;-)
@@ -43,5 +43,5 @@ There are still many "bugs" that I need to eliminiate. Please be patient ;-)
 - poorly documented the files and their functionality
 
 Please use issues or requests for further updates.
-Or donate by buying me a coffee.
+Or donate by buying me a coffee via [Paypal](https://www.paypal.com/donate/?hosted_button_id=9Y7YUPX9BAYA8).
 
