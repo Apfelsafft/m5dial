@@ -46,6 +46,8 @@ There are still many "bugs" that I need to eliminiate. Please be patient ;-)
 - would also like to have the nice visual circle like in climate to show brightness or volume in other pages. But I didn't finde a way to make it a nice package to be reused.
 - in my configuration the new brightness is not set correctly as it is updated from HA while trying to set a new value. But I think it is related to my personal setup using ZHA and deconz in parallel.
 - issues using climate page for my Truma water heater as it uses only 3 set points (off, 40°9 or 80°)
+- sometime the response of dial or button is not as i would have expected it
+- i do get many log messages that the touchscreen routine takes too long. I don't know how to handle that...
 - poorly documented the files and their functionality
 
 Please use issues for problems or requests for further updates.
